@@ -58,6 +58,16 @@ function App() {
               </AuthGuard>
             }
           />
+
+          <Route
+            path="ddu"
+            element={
+              <AuthGuard>
+                <h1>Du er logget ind</h1>
+                <h2>DDU</h2>
+              </AuthGuard>
+            }
+          />
           <Route path="loggetud" element={<YouAreLoggedOut />} />
           <Route path="*" element={<PageNotFound />} />
         </Route>

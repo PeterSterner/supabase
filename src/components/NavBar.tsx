@@ -32,6 +32,11 @@ function NavBarButtons() {
       {user ? (
         <>
           <li>
+            <Link to="ddu" className="text-gray-300 hover:text-white">
+              DDU
+            </Link>
+          </li>
+          <li>
             <Link to="visnoter" className="text-gray-300 hover:text-white">
               {t("your_notes")}
             </Link>
