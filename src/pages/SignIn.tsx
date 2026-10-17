@@ -57,7 +57,7 @@ function SignIn() {
                 await signInSupabase(emailField, passwordField);
                 setEmailField("");
                 setPasswordField("");
-                navigate("/forside");
+                navigate("/kontrolpanel");
               }}
             >
               {t("login")}

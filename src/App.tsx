@@ -13,6 +13,7 @@ import YouAreLoggedOut from "./pages/YouAreLoggedOut";
 import AddNote from "./pages/AddNote";
 import ShowNotes from "./pages/ShowNotes";
 import AuthGuard from "./components/AuthGuard";
+import { Dashboard } from "./components/Dashboard";
 
 function App() {
   return (
@@ -26,6 +27,14 @@ function App() {
           <Route path="glemt-adgangskode" element={<ForgotPassword />} />
           <Route path="opretbruger" element={<CreateUser />} />
           <Route path="om" element={<About />} />
+          <Route
+            path="kontrolpanel"
+            element={
+              <AuthGuard>
+                <Dashboard />
+              </AuthGuard>
+            }
+          />
           <Route
             path="indstillinger"
             element={
@@ -59,15 +68,6 @@ function App() {
             }
           />
 
-          <Route
-            path="ddu"
-            element={
-              <AuthGuard>
-                <h1>Du er logget ind</h1>
-                <h2>DDU</h2>
-              </AuthGuard>
-            }
-          />
           <Route path="loggetud" element={<YouAreLoggedOut />} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
