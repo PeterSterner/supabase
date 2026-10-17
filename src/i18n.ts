@@ -54,6 +54,7 @@ i18n
           go_back_home: "Den side, du leder efter, findes ikke. Gå tilbage til",
           home: "nyheder",
           dashboard: "Kontrolpanel",
+          welcome: "Velkommen, {{name}}!",
         },
       },
       en: {
@@ -101,6 +102,7 @@ i18n
             "The page you are looking for does not exist. Go back to",
           home: "news",
           dashboard: "Dashboard",
+          welcome: "Welcome, {{name}}!",
         },
       },
     },

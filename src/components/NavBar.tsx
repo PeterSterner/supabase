@@ -22,7 +22,7 @@ function NavBarButtons() {
       {user ? (
         <>
           <li>
-            <Link to="dashboard" className="text-gray-300 hover:text-white">
+            <Link to="kontrolpanel" className="text-gray-300 hover:text-white">
               {t("dashboard")}
             </Link>
           </li>
