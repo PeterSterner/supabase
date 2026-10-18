@@ -58,11 +58,12 @@ function NavBarButtons() {
         </>
       ) : (
         <>
-          <li>
+          {/*  <li>
             <Link to="news" className="text-gray-300 hover:text-white">
               {t("news")}
             </Link>
           </li>
+          */}
           <li>
             <Link to="om" className="text-gray-300 hover:text-white">
               {t("about")}

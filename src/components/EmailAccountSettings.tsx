@@ -123,13 +123,13 @@ function EmailAccountSettings() {
 
                 if (!user) {
                   alert(
-                    "Du skal være logget ind for at opdatere brugeroplysninger."
+                    "Du skal være logget ind for at opdatere brugeroplysninger.",
                   );
                   return;
                 }
                 const { data, error } = await updateUserProfileSupabase(
                   fornavn,
-                  efternavn
+                  efternavn,
                 );
                 if (error) {
                   console.error(error);
@@ -145,7 +145,7 @@ function EmailAccountSettings() {
                 alert("Brugeroplysninger opdateret.");
               }}
             >
-              Gem ændringer
+              {t("save_changes")}
             </Button>
           </div>
         </div>

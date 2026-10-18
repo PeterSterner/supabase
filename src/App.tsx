@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router";
 import Design from "./pages/Design";
 import Welcome from "./pages/Welcome";
-import News from "./pages/News";
 import ForgotPassword from "./pages/ForgotPassword";
 import CreateUser from "./pages/CreateUser";
 import SignIn from "./pages/SignIn";
@@ -14,15 +13,24 @@ import AddNote from "./pages/AddNote";
 import ShowNotes from "./pages/ShowNotes";
 import AuthGuard from "./components/AuthGuard";
 import { Dashboard } from "./components/Dashboard";
+import { useAuth } from "./Supabase";
+
+function Home() {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div>Loading...</div>;
+
+  return user ? <Dashboard /> : <Welcome />;
+}
 
 function App() {
   return (
     <AuthProvider>
       <Routes>
         <Route path="/" element={<Design />}>
-          <Route path="" index element={<Welcome />} />
+          <Route index element={<Home />} />
           <Route path="welcome" element={<Welcome />} />
-          <Route path="news" element={<News />} />
+          {/*<Route path="news" element={<News />} />*/}
           <Route path="logind" element={<SignIn />} />
           <Route path="glemt-adgangskode" element={<ForgotPassword />} />
           <Route path="opretbruger" element={<CreateUser />} />

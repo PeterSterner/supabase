@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import Toast from "../components/Toast";
@@ -10,6 +11,8 @@ function AddNote() {
   const { addNote, showNote } = useAuth();
   const { noteId } = useParams<{ noteId: string }>();
   const [toastOpen, setToastOpen] = useState(false);
+
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (noteId) {
@@ -33,7 +36,7 @@ function AddNote() {
 
   return (
     <>
-      <h1 className="text-3xl">Tilføj note</h1>
+      <h1 className="text-3xl">{t("add_note")}</h1>
       <form className="max-w-lg mx-auto">
         <div className="flex flex-col space-y-4">
           <div>
@@ -41,7 +44,7 @@ function AddNote() {
               htmlFor="title"
               className="block text-sm font-medium text-gray-700"
             >
-              Titel
+              {t("title")}
             </label>
             <input
               type="text"
@@ -57,7 +60,7 @@ function AddNote() {
               htmlFor="note"
               className="block text-sm font-medium text-gray-700"
             >
-              Note
+              {t("content")}
             </label>
             <textarea
               id="note"

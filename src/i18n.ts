@@ -11,6 +11,12 @@ i18n
     resources: {
       da: {
         translation: {
+          Created: "Oprettet",
+          Updated: "Opdateret",
+          edit_note: "Rediger",
+          delete_note: "Slet",
+          title: "Titel",
+          content: "Indhold",
           add_note: "Tilføj note",
           first_name: "Fornavn",
           last_name: "Efternavn",
@@ -21,7 +27,7 @@ i18n
           news: "Nyheder",
           login: "Log ind",
           logout: "Log ud",
-          signup: "Tilmeld",
+          signup: "Opret konto",
           email: "Email",
           hi: "Hej",
           you_are_logged_in: "Du er logget ind",
@@ -34,6 +40,7 @@ i18n
           language_saved: "Sprog gemt",
           save_changes: "Gem ændringer",
           your_notes: "Dine noter",
+          my_notes_intro: "Her kan du se dine noter.",
           settings: "Indstillinger",
           about: "Om",
           create_account: "Opret konto",
@@ -59,6 +66,12 @@ i18n
       },
       en: {
         translation: {
+          Created: "Created",
+          Updated: "Updated",
+          edit_note: "Edit",
+          delete_note: "Delete",
+          title: "Title",
+          content: "Content",
           add_note: "Add note",
           first_name: "First Name",
           last_name: "Last Name",
@@ -82,6 +95,7 @@ i18n
           language_saved: "Language saved",
           save_changes: "Save changes",
           your_notes: "My notes",
+          my_notes_intro: "Here you can see your notes.",
           settings: "Settings",
           about: "About",
           create_account: "Create account",

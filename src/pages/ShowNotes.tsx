@@ -35,9 +35,9 @@ function ShowNotes() {
 
   return (
     <>
-      <h1 className="text-3xl">Dine noter</h1>
+      <h1 className="text-3xl">{t("your_notes")}</h1>
 
-      <p className="mt-4">Her kan du se dine noter.</p>
+      <p className="mt-4">{t("my_notes_intro")}</p>
 
       <table className="min-w-full divide-y divide-gray-200 mt-4">
         <thead className="bg-gray-50">
@@ -58,13 +58,13 @@ function ShowNotes() {
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Oprettet
+              {t("Created")}
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Opdateret
+              {t("Updated")}
             </th>
             <th
               scope="col"
@@ -106,6 +106,7 @@ function ShowNotes() {
 
 function EditNote({ noteId }: { noteId: number }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <button
       className="text-red-600 hover:text-red-800"
@@ -113,7 +114,7 @@ function EditNote({ noteId }: { noteId: number }) {
         navigate("/tilføjnote/" + noteId); // Placeholder navigation
       }}
     >
-      Rediger
+      {t("edit_note")}
     </button>
   );
 }
@@ -126,6 +127,7 @@ function DeleteNote({
   setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
 }) {
   const { deleteNote, listNotes } = useAuth();
+  const { t } = useTranslation();
   return (
     <button
       className="text-red-600 hover:text-red-800"
@@ -149,7 +151,7 @@ function DeleteNote({
         }
       }}
     >
-      Slet
+      {t("delete_note")}
     </button>
   );
 }

@@ -23,7 +23,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         setSession(session);
         setUser(session?.user || null);
         setLoading(false);
-      }
+      },
     );
     return () => {
       authListener.subscription.unsubscribe();
@@ -59,7 +59,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     email: string,
     password: string,
     firstName?: string,
-    lastName?: string
+    lastName?: string,
   ) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -83,7 +83,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     // Tjek om provider findes i SUPPORTED_PROVIDERS
     if (
       !SUPPORTED_PROVIDERS.includes(
-        provider as (typeof SUPPORTED_PROVIDERS)[number]
+        provider as (typeof SUPPORTED_PROVIDERS)[number],
       )
     ) {
       console.error("Ugyldig provider:", provider);
@@ -93,7 +93,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: provider as (typeof SUPPORTED_PROVIDERS)[number], // ✅ type-sikker cast
       options: {
-        redirectTo: window.location.origin + "/forside",
+        redirectTo: window.location.origin + "/kontrolpanel",
       },
     });
 
@@ -106,7 +106,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const updateUserProfileSupabase = async (
     firstName: string,
-    lastName: string
+    lastName: string,
   ) => {
     const { error } = await supabase
       .from("users")
