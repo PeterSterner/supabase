@@ -10,6 +10,7 @@ import About from "./pages/About";
 import Settings from "./pages/Settings";
 import YouAreLoggedOut from "./pages/YouAreLoggedOut";
 import AddNote from "./pages/AddNote";
+import AddTransaction from "./pages/AddTransaction";
 import ShowNotes from "./pages/ShowNotes";
 import AuthGuard from "./components/AuthGuard";
 import { Dashboard } from "./components/Dashboard";
@@ -56,6 +57,14 @@ function App() {
             element={
               <AuthGuard>
                 <AddNote />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="tilføjtransaktion"
+            element={
+              <AuthGuard>
+                <AddTransaction />
               </AuthGuard>
             }
           />
