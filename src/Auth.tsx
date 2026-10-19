@@ -1,8 +1,9 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 
-import { Session, User } from "@supabase/supabase-js";
+import { AuthError, Session, User } from "@supabase/supabase-js";
 import { supabase, SUPPORTED_PROVIDERS } from "./Supabase";
 import AuthContextType from "./types/AuthContextType";
+import type { Transaktion } from "./types/TransaktionInterface";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -152,6 +153,22 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     return { data };
   };
 
+  const addTransaction = async (transaction: Transaktion) => {
+    if (!user) {
+      return { error: new AuthError("Du skal være logget ind for at tilføje en transaktion.") };
+    }
+
+    const { error } = await supabase
+      .from("transaktioner")
+      .insert({ ...transaction, user_id: user.id });
+
+    if (error) {
+      console.error(error);
+      return { error };
+    }
+    return { data: true };
+  };
+
   const showNote = async (noteId: string) => {
     const { data, error } = await supabase
       .from("notes")
@@ -220,6 +237,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     updateUserProfileSupabase,
     getUserProfileSupabase,
     addNote,
+    addTransaction,
     showNote,
     listNotes,
     deleteNote,

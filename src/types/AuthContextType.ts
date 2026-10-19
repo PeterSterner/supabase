@@ -6,6 +6,7 @@ import {
   WeakPassword,
 } from "@supabase/supabase-js";
 import { Note } from "./NoteInterface";
+import type { Transaktion } from "./TransaktionInterface";
 
 interface AuthContextType {
   session: Session | null;
@@ -50,6 +51,10 @@ interface AuthContextType {
   ) => Promise<{
     data?: Note;
     error?: PostgrestError;
+  }>;
+  addTransaction: (transaction: Transaktion) => Promise<{
+    data?: boolean;
+    error?: AuthError | PostgrestError;
   }>;
   showNote: (noteId: string) => Promise<{
     data?: Note;
