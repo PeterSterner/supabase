@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Button } from "../components/Button";
 import Modal from "../components/Modal";
+import { useAuth } from "../Supabase";
 import type { Transaktion } from "../types/TransaktionInterface";
 
 type TransactionForm = Omit<Transaktion, "antal"> & { antal: string };
@@ -47,11 +48,19 @@ type AddTransactionProps = {
 };
 
 function AddTransaction({ onClose, onSaved }: AddTransactionProps) {
+  const { addTransaction } = useAuth();
   const [values, setValues] = useState<TransactionForm>(initialValues);
   const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const savingRef = useRef(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleClose() {
+    if (!savingRef.current) onClose();
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (savingRef.current) return;
     setError("");
 
     const antal = Number(values.antal);
@@ -74,23 +83,28 @@ function AddTransaction({ onClose, onSaved }: AddTransactionProps) {
       return;
     }
 
+    savingRef.current = true;
+    setIsSaving(true);
     try {
-      const stored: unknown = JSON.parse(localStorage.getItem("transaktioner") ?? "[]");
-      if (!Array.isArray(stored)) {
-        throw new Error("Ugyldigt format for gemte transaktioner.");
+      const { error: saveError } = await addTransaction(transaction);
+      if (saveError) {
+        setError(`Transaktionen kunne ikke gemmes: ${saveError.message}`);
+        return;
       }
-      localStorage.setItem("transaktioner", JSON.stringify([...stored, transaction]));
     } catch {
-      setError("Transaktionen kunne ikke gemmes lokalt. Dine indtastninger er bevaret.");
+      setError("Transaktionen kunne ikke gemmes. Dine indtastninger er bevaret.");
       return;
+    } finally {
+      savingRef.current = false;
+      setIsSaving(false);
     }
     onSaved(transaction);
   }
 
   return (
-    <Modal title="Tilføj transaktion" isOpen onClose={onClose}>
-      <p className="mb-4">Transaktioner gemmes lokalt i denne browser og sendes ikke til din konto.</p>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <Modal title="Tilføj transaktion" isOpen onClose={handleClose}>
+      <p className="mb-4">Transaktionen gemmes på din konto.</p>
+      <form onSubmit={handleSubmit} aria-busy={isSaving} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {fields.map(({ name, label, type }) => (
           <div key={name}>
             <label htmlFor={name} className="block text-sm font-medium text-gray-700">
@@ -101,6 +115,7 @@ function AddTransaction({ onClose, onSaved }: AddTransactionProps) {
               name={name}
               type={type}
               required
+              disabled={isSaving}
               step={type === "number" ? (name === "antal" ? "1" : "any") : undefined}
               pattern={name === "valuta" ? "[A-Za-z]{3}" : undefined}
               maxLength={name === "valuta" ? 3 : undefined}
@@ -116,8 +131,8 @@ function AddTransaction({ onClose, onSaved }: AddTransactionProps) {
         ))}
         {error && <p role="alert" className="text-red-600 sm:col-span-2">{error}</p>}
         <div className="flex flex-wrap justify-end gap-3 sm:col-span-2">
-          <Button type="button" variant="secondary" onClick={onClose}>Annuller</Button>
-          <Button type="submit">Tilføj transaktion</Button>
+          <Button type="button" variant="secondary" onClick={handleClose} disabled={isSaving}>Annuller</Button>
+          <Button type="submit" disabled={isSaving}>{isSaving ? "Gemmer…" : "Tilføj transaktion"}</Button>
         </div>
       </form>
     </Modal>

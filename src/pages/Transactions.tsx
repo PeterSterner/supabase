@@ -56,15 +56,18 @@ function Transactions() {
           Tilføj transaktion
         </Button>
       </div>
-      <p>Her vises transaktioner gemt lokalt i denne browser.</p>
+      <p>Her vises tidligere lokalt gemte transaktioner samt transaktioner tilføjet i denne visning.</p>
       {message && <p role="status">{message}</p>}
       {isAdding && (
         <AddTransaction
           onClose={() => setIsAdding(false)}
-          onSaved={() => {
-            setData(loadTransactions());
+          onSaved={(transaction) => {
+            setData((previous) => ({
+              transactions: [...previous.transactions, transaction],
+              error: "",
+            }));
             setIsAdding(false);
-            setMessage("Transaktionen er gemt lokalt i denne browser.");
+            setMessage("Transaktionen er gemt på din konto.");
           }}
         />
       )}
@@ -80,7 +83,7 @@ function Transactions() {
           tabIndex={0}
         >
           <table className="w-full whitespace-nowrap text-left text-sm">
-            <caption className="sr-only">Alle lokalt gemte transaktioner</caption>
+            <caption className="sr-only">Transaktioner</caption>
             <thead className="bg-gray-800 text-white">
               <tr>
                 {columns.map(({ key, label, numeric }) => (
