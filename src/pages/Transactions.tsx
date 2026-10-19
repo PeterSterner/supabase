@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Button } from "../components/Button";
+import AddTransaction from "./AddTransaction";
 import type { Transaktion } from "../types/TransaktionInterface";
 
 const columns: { key: keyof Transaktion; label: string; numeric?: boolean }[] = [
@@ -43,20 +44,30 @@ function loadTransactions(): { transactions: Transaktion[]; error: string } {
 }
 
 function Transactions() {
-  const [{ transactions, error }] = useState(loadTransactions);
+  const [{ transactions, error }, setData] = useState(loadTransactions);
+  const [isAdding, setIsAdding] = useState(false);
+  const [message, setMessage] = useState("");
 
   return (
     <section className="min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl">Transaktioner</h1>
-        <Link
-          to="/tilføjtransaktion"
-          className="rounded-lg bg-gray-800 px-4 py-2 text-white hover:bg-gray-700"
-        >
+        <Button type="button" onClick={() => { setMessage(""); setIsAdding(true); }}>
           Tilføj transaktion
-        </Link>
+        </Button>
       </div>
       <p>Her vises transaktioner gemt lokalt i denne browser.</p>
+      {message && <p role="status">{message}</p>}
+      {isAdding && (
+        <AddTransaction
+          onClose={() => setIsAdding(false)}
+          onSaved={() => {
+            setData(loadTransactions());
+            setIsAdding(false);
+            setMessage("Transaktionen er gemt lokalt i denne browser.");
+          }}
+        />
+      )}
       {error ? (
         <p role="alert" className="text-red-600">{error}</p>
       ) : transactions.length === 0 ? (

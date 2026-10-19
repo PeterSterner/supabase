@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router";
+import { Routes, Route, Navigate } from "react-router";
 import Design from "./pages/Design";
 import Welcome from "./pages/Welcome";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -10,7 +10,6 @@ import About from "./pages/About";
 import Settings from "./pages/Settings";
 import YouAreLoggedOut from "./pages/YouAreLoggedOut";
 import AddNote from "./pages/AddNote";
-import AddTransaction from "./pages/AddTransaction";
 import Transactions from "./pages/Transactions";
 import ShowNotes from "./pages/ShowNotes";
 import AuthGuard from "./components/AuthGuard";
@@ -73,7 +72,7 @@ function App() {
             path="tilføjtransaktion"
             element={
               <AuthGuard>
-                <AddTransaction />
+                <Navigate to="/transaktioner" replace />
               </AuthGuard>
             }
           />

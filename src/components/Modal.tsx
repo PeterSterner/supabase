@@ -1,39 +1,58 @@
-import { useEffect } from "react";
+import { useEffect, useId, useRef } from "react";
+import type { ReactNode } from "react";
 
 type ModalProps = {
-  message: string;
+  title: string;
+  children: ReactNode;
   isOpen: boolean;
   onClose: () => void;
-  duration?: number; // millisekunder (valgfri)
 };
 
 export default function Modal({
-  message,
+  title,
+  children,
   isOpen,
   onClose,
-  duration = 3000,
 }: ModalProps) {
-  // Luk automatisk efter `duration` ms
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+
   useEffect(() => {
     if (!isOpen) return;
-    const timer = setTimeout(onClose, duration);
-    return () => clearTimeout(timer);
-  }, [isOpen, onClose, duration]);
+    const dialog = dialogRef.current;
+    const previousOverflow = document.body.style.overflow;
+    dialog?.showModal();
+    document.body.style.overflow = "hidden";
+    return () => {
+      dialog?.close();
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-      <div className="bg-white rounded-2xl shadow-lg px-6 py-4 max-w-sm w-full relative animate-fade-in">
-        <p className="text-gray-800 text-center">{message}</p>
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={titleId}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      className="fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 text-gray-800 shadow-lg backdrop:bg-black/50"
+    >
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h2 id={titleId} className="text-2xl">{title}</h2>
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+          className="rounded px-2 py-1 text-gray-500 hover:text-gray-800"
           aria-label="Luk"
         >
           ✕
         </button>
       </div>
-    </div>
+      {children}
+    </dialog>
   );
 }

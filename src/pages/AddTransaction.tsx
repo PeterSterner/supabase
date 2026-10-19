@@ -2,6 +2,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Button } from "../components/Button";
+import Modal from "../components/Modal";
 import type { Transaktion } from "../types/TransaktionInterface";
 
 type TransactionForm = Omit<Transaktion, "antal"> & { antal: string };
@@ -40,14 +41,17 @@ const fields: {
   { name: "titel", label: "Titel", type: "text" },
 ];
 
-function AddTransaction() {
+type AddTransactionProps = {
+  onClose: () => void;
+  onSaved: (transaction: Transaktion) => void;
+};
+
+function AddTransaction({ onClose, onSaved }: AddTransactionProps) {
   const [values, setValues] = useState<TransactionForm>(initialValues);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage("");
     setError("");
 
     const antal = Number(values.antal);
@@ -76,18 +80,17 @@ function AddTransaction() {
         throw new Error("Ugyldigt format for gemte transaktioner.");
       }
       localStorage.setItem("transaktioner", JSON.stringify([...stored, transaction]));
-      setValues({ ...initialValues });
-      setMessage("Transaktionen er gemt lokalt i denne browser.");
     } catch {
       setError("Transaktionen kunne ikke gemmes lokalt. Dine indtastninger er bevaret.");
+      return;
     }
+    onSaved(transaction);
   }
 
   return (
-    <section className="max-w-lg mx-auto space-y-4">
-      <h1 className="text-3xl">Tilføj transaktion</h1>
-      <p>Transaktioner gemmes lokalt i denne browser og sendes ikke til din konto.</p>
-      <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+    <Modal title="Tilføj transaktion" isOpen onClose={onClose}>
+      <p className="mb-4">Transaktioner gemmes lokalt i denne browser og sendes ikke til din konto.</p>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {fields.map(({ name, label, type }) => (
           <div key={name}>
             <label htmlFor={name} className="block text-sm font-medium text-gray-700">
@@ -105,18 +108,19 @@ function AddTransaction() {
               value={values[name]}
               onChange={(event) => {
                 setValues((previous) => ({ ...previous, [name]: event.target.value }));
-                setMessage("");
                 setError("");
               }}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
         ))}
-        {error && <p role="alert" className="text-red-600">{error}</p>}
-        {message && <p role="status">{message}</p>}
-        <Button type="submit" fullWidth>Tilføj transaktion</Button>
+        {error && <p role="alert" className="text-red-600 sm:col-span-2">{error}</p>}
+        <div className="flex flex-wrap justify-end gap-3 sm:col-span-2">
+          <Button type="button" variant="secondary" onClick={onClose}>Annuller</Button>
+          <Button type="submit">Tilføj transaktion</Button>
+        </div>
       </form>
-    </section>
+    </Modal>
   );
 }
 
