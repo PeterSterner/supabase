@@ -33,8 +33,8 @@ function NavBarButtons() {
             </Link>
           </li>
           <li>
-            <Link to="/tilføjtransaktion" className="text-gray-300 hover:text-white">
-              {t("add_transaction")}
+            <Link to="/transaktioner" className="text-gray-300 hover:text-white">
+              {t("transactions")}
             </Link>
           </li>
           <li>
