@@ -1,12 +1,13 @@
-export const handelsplatforme = [
-  "Nordnet",
-  "Saxo Bank",
-  "Nordea",
-  "Danske Bank",
-  "Jyske Bank",
-] as const;
+export interface Handelsplatform {
+  id: string;
+  navn: string;
+}
 
 export interface Depot {
   navn: string;
-  handelsplatform: (typeof handelsplatforme)[number];
+  handelsplatform_id: string;
+}
+
+export interface DepotVisning extends Depot {
+  handelsplatform: Handelsplatform;
 }

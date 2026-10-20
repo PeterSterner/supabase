@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "../components/Button";
 import AddTransaction from "./AddTransaction";
 import CreateDepot from "../components/CreateDepot";
-import type { Depot } from "../types/DepotInterface";
+import type { DepotVisning } from "../types/DepotInterface";
 import type { Transaktion } from "../types/TransaktionInterface";
 
 const columns: { key: keyof Transaktion; label: string; numeric?: boolean }[] = [
@@ -49,7 +49,7 @@ function Transactions() {
   const [{ transactions, error }, setData] = useState(loadTransactions);
   const [isAdding, setIsAdding] = useState(false);
   const [isCreatingDepot, setIsCreatingDepot] = useState(false);
-  const [depots, setDepots] = useState<Depot[]>([]);
+  const [depots, setDepots] = useState<DepotVisning[]>([]);
   const [message, setMessage] = useState("");
 
   return (
@@ -82,7 +82,7 @@ function Transactions() {
           <h2 className="text-xl">Depoter</h2>
           <ul className="list-inside list-disc">
             {depots.map((depot, index) => (
-              <li key={index}>{depot.navn} ({depot.handelsplatform})</li>
+              <li key={index}>{depot.navn} ({depot.handelsplatform.navn})</li>
             ))}
           </ul>
         </section>

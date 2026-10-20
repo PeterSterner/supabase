@@ -1,14 +1,13 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Button } from "./Button";
 import Modal from "./Modal";
-import { handelsplatforme } from "../types/DepotInterface";
-import type { Depot } from "../types/DepotInterface";
-import { useAuth } from "../Supabase";
+import type { Depot, DepotVisning, Handelsplatform } from "../types/DepotInterface";
+import { supabase, useAuth } from "../Supabase";
 
 type CreateDepotProps = {
   onClose: () => void;
-  onCreate: (depot: Depot) => void;
+  onCreate: (depot: DepotVisning) => void;
 };
 
 export default function CreateDepot({ onClose, onCreate }: CreateDepotProps) {
@@ -18,6 +17,30 @@ export default function CreateDepot({ onClose, onCreate }: CreateDepotProps) {
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const savingRef = useRef(false);
+  const [platforme, setPlatforme] = useState<Handelsplatform[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    async function loadPlatforms() {
+      try {
+        const { data, error } = await supabase
+          .from("handelsplatforme")
+          .select("id, navn")
+          .order("navn")
+          .returns<Handelsplatform[]>();
+        if (error) throw error;
+        if (active) setPlatforme(data ?? []);
+      } catch {
+        if (active) setLoadError("Handelsplatforme kunne ikke indlæses. Luk og åbn formularen for at prøve igen.");
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    }
+    void loadPlatforms();
+    return () => { active = false; };
+  }, []);
 
   function handleClose() {
     if (!savingRef.current) onClose();
@@ -27,12 +50,12 @@ export default function CreateDepot({ onClose, onCreate }: CreateDepotProps) {
     event.preventDefault();
     if (savingRef.current) return;
     setError("");
-    const platform = handelsplatforme.find((value) => value === handelsplatform);
+    const platform = platforme.find((value) => value.id === handelsplatform);
     if (!navn.trim() || !platform) {
       setError("Udfyld navn og vælg en handelsplatform.");
       return;
     }
-    const depot: Depot = { navn: navn.trim(), handelsplatform: platform };
+    const depot: Depot = { navn: navn.trim(), handelsplatform_id: platform.id };
     savingRef.current = true;
     setIsSaving(true);
     try {
@@ -48,7 +71,7 @@ export default function CreateDepot({ onClose, onCreate }: CreateDepotProps) {
       savingRef.current = false;
       setIsSaving(false);
     }
-    onCreate(depot);
+    onCreate({ ...depot, handelsplatform: platform });
   }
 
   const inputClassName = "mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500";
@@ -74,23 +97,25 @@ export default function CreateDepot({ onClose, onCreate }: CreateDepotProps) {
           <label htmlFor="depot-handelsplatform" className="block text-sm font-medium">Handelsplatform</label>
           <select
             id="depot-handelsplatform"
-            name="handelsplatform"
+            name="handelsplatform_id"
             required
-            disabled={isSaving}
+            disabled={isSaving || isLoading || platforme.length === 0}
             value={handelsplatform}
             onChange={(event) => { setHandelsplatform(event.target.value); setError(""); }}
             className={inputClassName}
           >
-            <option value="" disabled>Vælg handelsplatform</option>
-            {handelsplatforme.map((platform) => (
-              <option key={platform} value={platform}>{platform}</option>
+            <option value="" disabled>{isLoading ? "Indlæser handelsplatforme…" : "Vælg handelsplatform"}</option>
+            {platforme.map((platform) => (
+              <option key={platform.id} value={platform.id}>{platform.navn}</option>
             ))}
           </select>
         </div>
+        {loadError && <p role="alert" className="text-red-600">{loadError}</p>}
+        {!isLoading && !loadError && platforme.length === 0 && <p role="status">Der er ingen handelsplatforme at vælge imellem.</p>}
         {error && <p role="alert" className="text-red-600">{error}</p>}
         <div className="flex flex-wrap justify-end gap-3">
           <Button type="button" variant="secondary" onClick={handleClose} disabled={isSaving}>Annuller</Button>
-          <Button type="submit" disabled={isSaving}>{isSaving ? "Gemmer…" : "Opret depot"}</Button>
+          <Button type="submit" disabled={isSaving || isLoading || platforme.length === 0}>{isSaving ? "Gemmer…" : "Opret depot"}</Button>
         </div>
       </form>
     </Modal>

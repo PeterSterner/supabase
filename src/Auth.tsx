@@ -185,7 +185,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
     const { error } = await supabase.from("depoter").insert({
       navn: depot.navn.trim(),
-      handelsplatform: depot.handelsplatform,
+      handelsplatform_id: depot.handelsplatform_id,
       user_id: user.id,
     });
 
