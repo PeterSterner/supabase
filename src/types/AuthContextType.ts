@@ -7,6 +7,7 @@ import {
 } from "@supabase/supabase-js";
 import { Note } from "./NoteInterface";
 import type { Transaktion } from "./TransaktionInterface";
+import type { Depot } from "./DepotInterface";
 
 interface AuthContextType {
   session: Session | null;
@@ -53,6 +54,10 @@ interface AuthContextType {
     error?: PostgrestError;
   }>;
   addTransaction: (transaction: Transaktion) => Promise<{
+    data?: boolean;
+    error?: AuthError | PostgrestError;
+  }>;
+  addDepot: (depot: Depot) => Promise<{
     data?: boolean;
     error?: AuthError | PostgrestError;
   }>;

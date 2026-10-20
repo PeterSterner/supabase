@@ -4,6 +4,7 @@ import { AuthError, Session, User } from "@supabase/supabase-js";
 import { supabase, SUPPORTED_PROVIDERS } from "./Supabase";
 import AuthContextType from "./types/AuthContextType";
 import type { Transaktion } from "./types/TransaktionInterface";
+import type { Depot } from "./types/DepotInterface";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -169,6 +170,24 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     return { data: true };
   };
 
+  const addDepot = async (depot: Depot) => {
+    if (!user) {
+      return { error: new AuthError("Du skal være logget ind for at oprette et depot.") };
+    }
+
+    const { error } = await supabase.from("depoter").insert({
+      navn: depot.navn.trim(),
+      handelsplatform: depot.handelsplatform,
+      user_id: user.id,
+    });
+
+    if (error) {
+      console.error(error);
+      return { error };
+    }
+    return { data: true };
+  };
+
   const showNote = async (noteId: string) => {
     const { data, error } = await supabase
       .from("notes")
@@ -238,6 +257,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     getUserProfileSupabase,
     addNote,
     addTransaction,
+    addDepot,
     showNote,
     listNotes,
     deleteNote,

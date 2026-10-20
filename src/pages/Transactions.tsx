@@ -73,7 +73,7 @@ function Transactions() {
           onCreate={(depot) => {
             setDepots((previous) => [...previous, depot]);
             setIsCreatingDepot(false);
-            setMessage("Depotet er tilføjet til denne visning. Det forsvinder, når siden genindlæses.");
+            setMessage("Depotet er gemt på din konto.");
           }}
         />
       )}
