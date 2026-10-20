@@ -156,7 +156,11 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const addTransaction = async (transaction: Transaktion) => {
     if (!user) {
-      return { error: new AuthError("Du skal være logget ind for at tilføje en transaktion.") };
+      return {
+        error: new AuthError(
+          "Du skal være logget ind for at tilføje en transaktion.",
+        ),
+      };
     }
 
     const { error } = await supabase
@@ -172,7 +176,11 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const addDepot = async (depot: Depot) => {
     if (!user) {
-      return { error: new AuthError("Du skal være logget ind for at oprette et depot.") };
+      return {
+        error: new AuthError(
+          "Du skal være logget ind for at oprette et depot.",
+        ),
+      };
     }
 
     const { error } = await supabase.from("depoter").insert({
