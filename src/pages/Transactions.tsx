@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "../components/Button";
 import AddTransaction from "./AddTransaction";
+import CreateDepot from "../components/CreateDepot";
+import type { Depot } from "../types/DepotInterface";
 import type { Transaktion } from "../types/TransaktionInterface";
 
 const columns: { key: keyof Transaktion; label: string; numeric?: boolean }[] = [
@@ -46,18 +48,45 @@ function loadTransactions(): { transactions: Transaktion[]; error: string } {
 function Transactions() {
   const [{ transactions, error }, setData] = useState(loadTransactions);
   const [isAdding, setIsAdding] = useState(false);
+  const [isCreatingDepot, setIsCreatingDepot] = useState(false);
+  const [depots, setDepots] = useState<Depot[]>([]);
   const [message, setMessage] = useState("");
 
   return (
     <section className="min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl">Transaktioner</h1>
-        <Button type="button" onClick={() => { setMessage(""); setIsAdding(true); }}>
-          Tilføj transaktion
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button type="button" onClick={() => { setMessage(""); setIsAdding(true); }}>
+            Tilføj transaktion
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => { setMessage(""); setIsCreatingDepot(true); }}>
+            Opret depot
+          </Button>
+        </div>
       </div>
       <p>Her vises tidligere lokalt gemte transaktioner samt transaktioner tilføjet i denne visning.</p>
       {message && <p role="status">{message}</p>}
+      {isCreatingDepot && (
+        <CreateDepot
+          onClose={() => setIsCreatingDepot(false)}
+          onCreate={(depot) => {
+            setDepots((previous) => [...previous, depot]);
+            setIsCreatingDepot(false);
+            setMessage("Depotet er tilføjet til denne visning. Det forsvinder, når siden genindlæses.");
+          }}
+        />
+      )}
+      {depots.length > 0 && (
+        <section aria-label="Depoter" className="space-y-2">
+          <h2 className="text-xl">Depoter</h2>
+          <ul className="list-inside list-disc">
+            {depots.map((depot, index) => (
+              <li key={index}>{depot.navn} ({depot.handelsplatform})</li>
+            ))}
+          </ul>
+        </section>
+      )}
       {isAdding && (
         <AddTransaction
           onClose={() => setIsAdding(false)}
