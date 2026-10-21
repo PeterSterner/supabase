@@ -6,7 +6,7 @@ import {
   WeakPassword,
 } from "@supabase/supabase-js";
 import { Note } from "./NoteInterface";
-import type { Transaktion } from "./TransaktionInterface";
+import type { SavedTransaction, Transaktion } from "./TransaktionInterface";
 import type { Depot } from "./DepotInterface";
 
 interface AuthContextType {
@@ -58,6 +58,14 @@ interface AuthContextType {
     error?: AuthError | PostgrestError;
   }>;
   addDepot: (depot: Depot) => Promise<{
+    data?: boolean;
+    error?: AuthError | PostgrestError;
+  }>;
+  listTransactions: () => Promise<{
+    data?: SavedTransaction[];
+    error?: AuthError | PostgrestError;
+  }>;
+  deleteTransaction: (transaction: SavedTransaction) => Promise<{
     data?: boolean;
     error?: AuthError | PostgrestError;
   }>;

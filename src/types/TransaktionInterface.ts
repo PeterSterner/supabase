@@ -15,3 +15,5 @@ export interface Transaktion {
   ISIN: string;
   titel: string;
 }
+
+export type SavedTransaction = Transaktion & { id?: string | number };

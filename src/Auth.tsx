@@ -1,9 +1,9 @@
-import React, { createContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useState, useEffect, useCallback, ReactNode } from "react";
 
 import { AuthError, Session, User } from "@supabase/supabase-js";
 import { supabase, SUPPORTED_PROVIDERS } from "./Supabase";
 import AuthContextType from "./types/AuthContextType";
-import type { Transaktion } from "./types/TransaktionInterface";
+import type { SavedTransaction, Transaktion } from "./types/TransaktionInterface";
 import type { Depot } from "./types/DepotInterface";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -174,6 +174,35 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     return { data: true };
   };
 
+  const listTransactions = useCallback(async () => {
+    if (!user) {
+      return { error: new AuthError("Du skal være logget ind for at se transaktioner.") };
+    }
+
+    const { data, error } = await supabase
+      .from("transaktioner")
+      .select("*")
+      .eq("user_id", user.id);
+
+    if (error) return { error };
+    return { data: data as SavedTransaction[] };
+  }, [user]);
+
+  const deleteTransaction = async (transaction: SavedTransaction) => {
+    if (!user) {
+      return { error: new AuthError("Du skal være logget ind for at slette en transaktion.") };
+    }
+
+    const query = supabase.from("transaktioner").delete().eq("user_id", user.id);
+    const { data, error } = await (transaction.id != null
+      ? query.eq("id", transaction.id)
+      : query.eq("reference_nummer", transaction.reference_nummer))
+      .select("reference_nummer");
+
+    if (error) return { error };
+    return { data: Boolean(data?.length) };
+  };
+
   const addDepot = async (depot: Depot) => {
     if (!user) {
       return {
@@ -265,6 +294,8 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     getUserProfileSupabase,
     addNote,
     addTransaction,
+    listTransactions,
+    deleteTransaction,
     addDepot,
     showNote,
     listNotes,

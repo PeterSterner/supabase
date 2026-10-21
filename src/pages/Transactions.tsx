@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { FaTrash } from "react-icons/fa";
-import { supabase, useAuth } from "../Supabase";
+import { useAuth } from "../Supabase";
 import { Button } from "../components/Button";
 import AddTransaction from "./AddTransaction";
 import CreateDepot from "../components/CreateDepot";
 import type { DepotVisning } from "../types/DepotInterface";
-import type { Transaktion } from "../types/TransaktionInterface";
-
-type SavedTransaction = Transaktion & { id?: string | number };
+import type { SavedTransaction, Transaktion } from "../types/TransaktionInterface";
 
 const columns: { key: keyof Transaktion; label: string; numeric?: boolean }[] = [
   { key: "reference_nummer", label: "Referencenummer" },
@@ -25,7 +23,7 @@ const columns: { key: keyof Transaktion; label: string; numeric?: boolean }[] = 
 ];
 
 function Transactions() {
-  const { user } = useAuth();
+  const { user, listTransactions, deleteTransaction } = useAuth();
   const [{ transactions, error }, setData] = useState<{ transactions: SavedTransaction[]; error: string }>({ transactions: [], error: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [deleteError, setDeleteError] = useState("");
@@ -43,7 +41,7 @@ function Transactions() {
       setData({ transactions: [], error: "" });
       try {
         if (!user) return;
-        const { data, error } = await supabase.from("transaktioner").select("*").eq("user_id", user.id);
+        const { data, error } = await listTransactions();
         if (!active) return;
         setData({ transactions: error ? [] : data ?? [], error: error ? "Transaktionerne kunne ikke indlæses fra databasen." : "" });
       } catch {
@@ -54,9 +52,9 @@ function Transactions() {
     }
     void load();
     return () => { active = false; };
-  }, [user]);
+  }, [user, listTransactions]);
 
-  async function deleteTransaction(transaction: SavedTransaction) {
+  async function handleDeleteTransaction(transaction: SavedTransaction) {
     if (!user || deletingRef.current) return;
     if (transaction.id == null && transactions.filter((item) => item.reference_nummer === transaction.reference_nummer).length !== 1) {
       setDeleteError("Transaktionen kan ikke slettes entydigt. Genindlæs siden og prøv igen.");
@@ -67,11 +65,8 @@ function Transactions() {
     setDeleteError("");
     setMessage("");
     try {
-      const query = supabase.from("transaktioner").delete().eq("user_id", user.id);
-      const { data, error } = await (transaction.id != null
-        ? query.eq("id", transaction.id)
-        : query.eq("reference_nummer", transaction.reference_nummer)).select("reference_nummer");
-      if (error || !data?.length) {
+      const { data, error } = await deleteTransaction(transaction);
+      if (error || !data) {
         setDeleteError("Transaktionen kunne ikke slettes fra databasen. Prøv igen.");
         return;
       }
@@ -170,7 +165,7 @@ function Transactions() {
                   <td className="px-4 py-3">
                     <button
                       type="button"
-                      onClick={() => void deleteTransaction(transaction)}
+                      onClick={() => void handleDeleteTransaction(transaction)}
                       disabled={deleting !== null}
                       aria-label={`Slet transaktion ${transaction.reference_nummer}`}
                       title="Slet transaktion"
