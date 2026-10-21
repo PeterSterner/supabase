@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { FaTrash } from "react-icons/fa";
+import { supabase, useAuth } from "../Supabase";
 import { Button } from "../components/Button";
 import AddTransaction from "./AddTransaction";
 import CreateDepot from "../components/CreateDepot";
 import type { DepotVisning } from "../types/DepotInterface";
 import type { Transaktion } from "../types/TransaktionInterface";
+
+type SavedTransaction = Transaktion & { id?: string | number };
 
 const columns: { key: keyof Transaktion; label: string; numeric?: boolean }[] = [
   { key: "reference_nummer", label: "Referencenummer" },
@@ -20,37 +24,66 @@ const columns: { key: keyof Transaktion; label: string; numeric?: boolean }[] = 
   { key: "titel", label: "Titel" },
 ];
 
-function isTransaktion(value: unknown): value is Transaktion {
-  if (typeof value !== "object" || value === null) return false;
-  const record = value as Record<string, unknown>;
-  return columns.every(({ key }) =>
-    key === "antal"
-      ? Number.isSafeInteger(record[key])
-      : typeof record[key] === "string"
-  );
-}
-
-function loadTransactions(): { transactions: Transaktion[]; error: string } {
-  try {
-    const stored: unknown = JSON.parse(localStorage.getItem("transaktioner") ?? "[]");
-    if (!Array.isArray(stored) || !stored.every(isTransaktion)) {
-      throw new Error("Ugyldigt format for gemte transaktioner.");
-    }
-    return { transactions: stored, error: "" };
-  } catch {
-    return {
-      transactions: [],
-      error: "Transaktionerne kunne ikke indlæses fra denne browser.",
-    };
-  }
-}
-
 function Transactions() {
-  const [{ transactions, error }, setData] = useState(loadTransactions);
+  const { user } = useAuth();
+  const [{ transactions, error }, setData] = useState<{ transactions: SavedTransaction[]; error: string }>({ transactions: [], error: "" });
+  const [isLoading, setIsLoading] = useState(true);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const deletingRef = useRef(false);
   const [isAdding, setIsAdding] = useState(false);
   const [isCreatingDepot, setIsCreatingDepot] = useState(false);
   const [depots, setDepots] = useState<DepotVisning[]>([]);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      setIsLoading(true);
+      setData({ transactions: [], error: "" });
+      try {
+        if (!user) return;
+        const { data, error } = await supabase.from("transaktioner").select("*").eq("user_id", user.id);
+        if (!active) return;
+        setData({ transactions: error ? [] : data ?? [], error: error ? "Transaktionerne kunne ikke indlæses fra databasen." : "" });
+      } catch {
+        if (active) setData({ transactions: [], error: "Transaktionerne kunne ikke indlæses fra databasen." });
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    }
+    void load();
+    return () => { active = false; };
+  }, [user]);
+
+  async function deleteTransaction(transaction: SavedTransaction) {
+    if (!user || deletingRef.current) return;
+    if (transaction.id == null && transactions.filter((item) => item.reference_nummer === transaction.reference_nummer).length !== 1) {
+      setDeleteError("Transaktionen kan ikke slettes entydigt. Genindlæs siden og prøv igen.");
+      return;
+    }
+    deletingRef.current = true;
+    setDeleting(transaction.reference_nummer);
+    setDeleteError("");
+    setMessage("");
+    try {
+      const query = supabase.from("transaktioner").delete().eq("user_id", user.id);
+      const { data, error } = await (transaction.id != null
+        ? query.eq("id", transaction.id)
+        : query.eq("reference_nummer", transaction.reference_nummer)).select("reference_nummer");
+      if (error || !data?.length) {
+        setDeleteError("Transaktionen kunne ikke slettes fra databasen. Prøv igen.");
+        return;
+      }
+      setData((previous) => ({ ...previous, transactions: previous.transactions.filter((item) => item !== transaction) }));
+      setMessage("Transaktionen er slettet.");
+    } catch {
+      setDeleteError("Transaktionen kunne ikke slettes fra databasen. Prøv igen.");
+    } finally {
+      deletingRef.current = false;
+      setDeleting(null);
+    }
+  }
 
   return (
     <section className="min-w-0 space-y-4">
@@ -65,8 +98,9 @@ function Transactions() {
           </Button>
         </div>
       </div>
-      <p>Her vises tidligere lokalt gemte transaktioner samt transaktioner tilføjet i denne visning.</p>
+      <p>Her vises transaktionerne gemt på din konto.</p>
       {message && <p role="status">{message}</p>}
+      {deleteError && <p role="alert" className="text-red-600">{deleteError}</p>}
       {isCreatingDepot && (
         <CreateDepot
           onClose={() => setIsCreatingDepot(false)}
@@ -100,7 +134,9 @@ function Transactions() {
           }}
         />
       )}
-      {error ? (
+      {isLoading ? (
+        <p role="status">Indlæser transaktioner…</p>
+      ) : error ? (
         <p role="alert" className="text-red-600">{error}</p>
       ) : transactions.length === 0 ? (
         <p>Der er endnu ingen transaktioner. Tilføj din første transaktion via knappen ovenfor.</p>
@@ -120,16 +156,30 @@ function Transactions() {
                     {label}
                   </th>
                 ))}
+                <th scope="col" className="px-4 py-3"><span className="sr-only">Slet transaktion</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-300">
               {transactions.map((transaction, index) => (
-                <tr key={index}>
+                <tr key={transaction.id ?? index}>
                   {columns.map(({ key, numeric }) => (
                     <td key={key} className={`px-4 py-3 ${numeric ? "text-right tabular-nums" : "text-left"}`}>
                       {transaction[key]}
                     </td>
                   ))}
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => void deleteTransaction(transaction)}
+                      disabled={deleting !== null}
+                      aria-label={`Slet transaktion ${transaction.reference_nummer}`}
+                      title="Slet transaktion"
+                      aria-busy={deleting === transaction.reference_nummer}
+                      className="rounded p-2 text-red-600 hover:bg-red-50 hover:text-red-800 focus-visible:outline-2 focus-visible:outline-red-600 disabled:cursor-wait disabled:opacity-50"
+                    >
+                      <FaTrash aria-hidden="true" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
