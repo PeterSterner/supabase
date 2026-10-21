@@ -1,9 +1,18 @@
-import React, { createContext, useState, useEffect, useCallback, ReactNode } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
 
 import { AuthError, Session, User } from "@supabase/supabase-js";
 import { supabase, SUPPORTED_PROVIDERS } from "./Supabase";
 import AuthContextType from "./types/AuthContextType";
-import type { SavedTransaction, Transaktion } from "./types/TransaktionInterface";
+import type {
+  GemtTransaktion,
+  Transaktion,
+} from "./types/TransaktionInterface";
 import type { Depot } from "./types/DepotInterface";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -176,7 +185,11 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const listTransactions = useCallback(async () => {
     if (!user) {
-      return { error: new AuthError("Du skal være logget ind for at se transaktioner.") };
+      return {
+        error: new AuthError(
+          "Du skal være logget ind for at se transaktioner.",
+        ),
+      };
     }
 
     const { data, error } = await supabase
@@ -185,19 +198,27 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       .eq("user_id", user.id);
 
     if (error) return { error };
-    return { data: data as SavedTransaction[] };
+    return { data: data as GemtTransaktion[] };
   }, [user]);
 
-  const deleteTransaction = async (transaction: SavedTransaction) => {
+  const deleteTransaction = async (transaction: GemtTransaktion) => {
     if (!user) {
-      return { error: new AuthError("Du skal være logget ind for at slette en transaktion.") };
+      return {
+        error: new AuthError(
+          "Du skal være logget ind for at slette en transaktion.",
+        ),
+      };
     }
 
-    const query = supabase.from("transaktioner").delete().eq("user_id", user.id);
-    const { data, error } = await (transaction.id != null
-      ? query.eq("id", transaction.id)
-      : query.eq("reference_nummer", transaction.reference_nummer))
-      .select("reference_nummer");
+    const query = supabase
+      .from("transaktioner")
+      .delete()
+      .eq("user_id", user.id);
+    const { data, error } = await (
+      transaction.id != null
+        ? query.eq("id", transaction.id)
+        : query.eq("reference_nummer", transaction.reference_nummer)
+    ).select("reference_nummer");
 
     if (error) return { error };
     return { data: Boolean(data?.length) };

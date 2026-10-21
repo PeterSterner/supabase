@@ -6,7 +6,7 @@ import {
   WeakPassword,
 } from "@supabase/supabase-js";
 import { Note } from "./NoteInterface";
-import type { SavedTransaction, Transaktion } from "./TransaktionInterface";
+import type { GemtTransaktion, Transaktion } from "./TransaktionInterface";
 import type { Depot } from "./DepotInterface";
 
 interface AuthContextType {
@@ -15,7 +15,7 @@ interface AuthContextType {
   loading: boolean;
   signInSupabase: (
     email: string,
-    password: string
+    password: string,
   ) => Promise<
     | {
         error: AuthError;
@@ -36,11 +36,11 @@ interface AuthContextType {
     email: string,
     password: string,
     firstName?: string,
-    lastName?: string
+    lastName?: string,
   ) => Promise<{ data?: boolean; error?: AuthError }>;
   updateUserProfileSupabase: (
     firstName: string,
-    lastName: string
+    lastName: string,
   ) => Promise<{ data?: boolean; error?: PostgrestError }>;
   getUserProfileSupabase: () => Promise<{
     data?: { first_name: string; last_name: string };
@@ -48,7 +48,7 @@ interface AuthContextType {
   }>;
   addNote: (
     title: string,
-    content: string
+    content: string,
   ) => Promise<{
     data?: Note;
     error?: PostgrestError;
@@ -62,10 +62,10 @@ interface AuthContextType {
     error?: AuthError | PostgrestError;
   }>;
   listTransactions: () => Promise<{
-    data?: SavedTransaction[];
+    data?: GemtTransaktion[];
     error?: AuthError | PostgrestError;
   }>;
-  deleteTransaction: (transaction: SavedTransaction) => Promise<{
+  deleteTransaction: (transaction: GemtTransaktion) => Promise<{
     data?: boolean;
     error?: AuthError | PostgrestError;
   }>;
@@ -78,12 +78,12 @@ interface AuthContextType {
     error?: PostgrestError;
   }>;
   deleteNote: (
-    noteId: number
+    noteId: number,
   ) => Promise<{ data?: boolean; error?: PostgrestError }>;
   updateNote: (
     noteId: number,
     title: string,
-    content: string
+    content: string,
   ) => Promise<{ data?: boolean; error?: PostgrestError }>;
 }
 

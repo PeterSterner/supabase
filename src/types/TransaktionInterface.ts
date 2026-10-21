@@ -16,4 +16,4 @@ export interface Transaktion {
   titel: string;
 }
 
-export type SavedTransaction = Transaktion & { id?: string | number };
+export type GemtTransaktion = Transaktion & { id?: string | number };

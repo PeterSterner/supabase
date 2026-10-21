@@ -5,26 +5,33 @@ import { Button } from "../components/Button";
 import AddTransaction from "./AddTransaction";
 import CreateDepot from "../components/CreateDepot";
 import type { DepotVisning } from "../types/DepotInterface";
-import type { SavedTransaction, Transaktion } from "../types/TransaktionInterface";
+import type {
+  GemtTransaktion,
+  Transaktion,
+} from "../types/TransaktionInterface";
 
-const columns: { key: keyof Transaktion; label: string; numeric?: boolean }[] = [
-  { key: "reference_nummer", label: "Referencenummer" },
-  { key: "handelsdato", label: "Handelsdato" },
-  { key: "valørdato", label: "Valørdato" },
-  { key: "valuta", label: "Valuta" },
-  { key: "handelskurs", label: "Handelskurs", numeric: true },
-  { key: "kursværdi", label: "Kursværdi", numeric: true },
-  { key: "handelsomkostninger", label: "Handelsomkostninger", numeric: true },
-  { key: "kurtage", label: "Kurtage", numeric: true },
-  { key: "afregningsbeløb", label: "Afregningsbeløb", numeric: true },
-  { key: "antal", label: "Antal", numeric: true },
-  { key: "ISIN", label: "ISIN" },
-  { key: "titel", label: "Titel" },
-];
+const columns: { key: keyof Transaktion; label: string; numeric?: boolean }[] =
+  [
+    { key: "reference_nummer", label: "Referencenummer" },
+    { key: "handelsdato", label: "Handelsdato" },
+    { key: "valørdato", label: "Valørdato" },
+    { key: "valuta", label: "Valuta" },
+    { key: "handelskurs", label: "Handelskurs", numeric: true },
+    { key: "kursværdi", label: "Kursværdi", numeric: true },
+    { key: "handelsomkostninger", label: "Handelsomkostninger", numeric: true },
+    { key: "kurtage", label: "Kurtage", numeric: true },
+    { key: "afregningsbeløb", label: "Afregningsbeløb", numeric: true },
+    { key: "antal", label: "Antal", numeric: true },
+    { key: "ISIN", label: "ISIN" },
+    { key: "titel", label: "Titel" },
+  ];
 
 function Transactions() {
   const { user, listTransactions, deleteTransaction } = useAuth();
-  const [{ transactions, error }, setData] = useState<{ transactions: SavedTransaction[]; error: string }>({ transactions: [], error: "" });
+  const [{ transactions, error }, setData] = useState<{
+    transactions: GemtTransaktion[];
+    error: string;
+  }>({ transactions: [], error: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -43,21 +50,39 @@ function Transactions() {
         if (!user) return;
         const { data, error } = await listTransactions();
         if (!active) return;
-        setData({ transactions: error ? [] : data ?? [], error: error ? "Transaktionerne kunne ikke indlæses fra databasen." : "" });
+        setData({
+          transactions: error ? [] : (data ?? []),
+          error: error
+            ? "Transaktionerne kunne ikke indlæses fra databasen."
+            : "",
+        });
       } catch {
-        if (active) setData({ transactions: [], error: "Transaktionerne kunne ikke indlæses fra databasen." });
+        if (active)
+          setData({
+            transactions: [],
+            error: "Transaktionerne kunne ikke indlæses fra databasen.",
+          });
       } finally {
         if (active) setIsLoading(false);
       }
     }
     void load();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [user, listTransactions]);
 
-  async function handleDeleteTransaction(transaction: SavedTransaction) {
+  async function handleDeleteTransaction(transaction: GemtTransaktion) {
     if (!user || deletingRef.current) return;
-    if (transaction.id == null && transactions.filter((item) => item.reference_nummer === transaction.reference_nummer).length !== 1) {
-      setDeleteError("Transaktionen kan ikke slettes entydigt. Genindlæs siden og prøv igen.");
+    if (
+      transaction.id == null &&
+      transactions.filter(
+        (item) => item.reference_nummer === transaction.reference_nummer,
+      ).length !== 1
+    ) {
+      setDeleteError(
+        "Transaktionen kan ikke slettes entydigt. Genindlæs siden og prøv igen.",
+      );
       return;
     }
     deletingRef.current = true;
@@ -67,13 +92,22 @@ function Transactions() {
     try {
       const { data, error } = await deleteTransaction(transaction);
       if (error || !data) {
-        setDeleteError("Transaktionen kunne ikke slettes fra databasen. Prøv igen.");
+        setDeleteError(
+          "Transaktionen kunne ikke slettes fra databasen. Prøv igen.",
+        );
         return;
       }
-      setData((previous) => ({ ...previous, transactions: previous.transactions.filter((item) => item !== transaction) }));
+      setData((previous) => ({
+        ...previous,
+        transactions: previous.transactions.filter(
+          (item) => item !== transaction,
+        ),
+      }));
       setMessage("Transaktionen er slettet.");
     } catch {
-      setDeleteError("Transaktionen kunne ikke slettes fra databasen. Prøv igen.");
+      setDeleteError(
+        "Transaktionen kunne ikke slettes fra databasen. Prøv igen.",
+      );
     } finally {
       deletingRef.current = false;
       setDeleting(null);
@@ -85,17 +119,34 @@ function Transactions() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl">Transaktioner</h1>
         <div className="flex flex-wrap gap-3">
-          <Button type="button" onClick={() => { setMessage(""); setIsAdding(true); }}>
+          <Button
+            type="button"
+            onClick={() => {
+              setMessage("");
+              setIsAdding(true);
+            }}
+          >
             Tilføj transaktion
           </Button>
-          <Button type="button" variant="secondary" onClick={() => { setMessage(""); setIsCreatingDepot(true); }}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              setMessage("");
+              setIsCreatingDepot(true);
+            }}
+          >
             Opret depot
           </Button>
         </div>
       </div>
       <p>Her vises transaktionerne gemt på din konto.</p>
       {message && <p role="status">{message}</p>}
-      {deleteError && <p role="alert" className="text-red-600">{deleteError}</p>}
+      {deleteError && (
+        <p role="alert" className="text-red-600">
+          {deleteError}
+        </p>
+      )}
       {isCreatingDepot && (
         <CreateDepot
           onClose={() => setIsCreatingDepot(false)}
@@ -111,7 +162,9 @@ function Transactions() {
           <h2 className="text-xl">Depoter</h2>
           <ul className="list-inside list-disc">
             {depots.map((depot, index) => (
-              <li key={index}>{depot.navn} ({depot.handelsplatform.navn})</li>
+              <li key={index}>
+                {depot.navn} ({depot.handelsplatform.navn})
+              </li>
             ))}
           </ul>
         </section>
@@ -132,9 +185,14 @@ function Transactions() {
       {isLoading ? (
         <p role="status">Indlæser transaktioner…</p>
       ) : error ? (
-        <p role="alert" className="text-red-600">{error}</p>
+        <p role="alert" className="text-red-600">
+          {error}
+        </p>
       ) : transactions.length === 0 ? (
-        <p>Der er endnu ingen transaktioner. Tilføj din første transaktion via knappen ovenfor.</p>
+        <p>
+          Der er endnu ingen transaktioner. Tilføj din første transaktion via
+          knappen ovenfor.
+        </p>
       ) : (
         <div
           className="overflow-x-auto rounded-lg border border-gray-300 focus:outline-indigo-500"
@@ -147,18 +205,27 @@ function Transactions() {
             <thead className="bg-gray-800 text-white">
               <tr>
                 {columns.map(({ key, label, numeric }) => (
-                  <th key={key} scope="col" className={`px-4 py-3 ${numeric ? "text-right" : "text-left"}`}>
+                  <th
+                    key={key}
+                    scope="col"
+                    className={`px-4 py-3 ${numeric ? "text-right" : "text-left"}`}
+                  >
                     {label}
                   </th>
                 ))}
-                <th scope="col" className="px-4 py-3"><span className="sr-only">Slet transaktion</span></th>
+                <th scope="col" className="px-4 py-3">
+                  <span className="sr-only">Slet transaktion</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-300">
               {transactions.map((transaction, index) => (
                 <tr key={transaction.id ?? index}>
                   {columns.map(({ key, numeric }) => (
-                    <td key={key} className={`px-4 py-3 ${numeric ? "text-right tabular-nums" : "text-left"}`}>
+                    <td
+                      key={key}
+                      className={`px-4 py-3 ${numeric ? "text-right tabular-nums" : "text-left"}`}
+                    >
                       {transaction[key]}
                     </td>
                   ))}
