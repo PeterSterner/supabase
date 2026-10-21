@@ -27,7 +27,10 @@ const columns: { key: keyof Transaktion; label: string; numeric?: boolean }[] =
   ];
 
 function Transactions() {
-  const { user, listTransactions, deleteTransaction } = useAuth();
+  const { user, listTransactions, deleteTransaction, hasDepot } = useAuth();
+  const [depotStatus, setDepotStatus] = useState<{ userId?: string; exists: boolean; error: string }>({ exists: false, error: "" });
+  const isCheckingDepot = depotStatus.userId !== user?.id || !user;
+  const canAddTransaction = !isCheckingDepot && depotStatus.exists && !depotStatus.error;
   const [{ transactions, error }, setData] = useState<{
     transactions: GemtTransaktion[];
     error: string;
@@ -40,6 +43,25 @@ function Transactions() {
   const [isCreatingDepot, setIsCreatingDepot] = useState(false);
   const [depots, setDepots] = useState<DepotVisning[]>([]);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    setIsAdding(false);
+    setDepots([]);
+    setDepotStatus({ exists: false, error: "" });
+    if (!user) return;
+    const userId = user.id;
+    async function checkDepot() {
+      try {
+        const { data, error } = await hasDepot();
+        if (active) setDepotStatus({ userId, exists: Boolean(data), error: error ? "Depotet kunne ikke kontrolleres. Genindlæs siden for at prøve igen." : "" });
+      } catch {
+        if (active) setDepotStatus({ userId, exists: false, error: "Depotet kunne ikke kontrolleres. Genindlæs siden for at prøve igen." });
+      }
+    }
+    void checkDepot();
+    return () => { active = false; };
+  }, [user, hasDepot]);
 
   useEffect(() => {
     let active = true;
@@ -121,7 +143,10 @@ function Transactions() {
         <div className="flex flex-wrap gap-3">
           <Button
             type="button"
+            disabled={!canAddTransaction}
+            aria-describedby="depot-requirement"
             onClick={() => {
+              if (!canAddTransaction) return;
               setMessage("");
               setIsAdding(true);
             }}
@@ -141,6 +166,9 @@ function Transactions() {
         </div>
       </div>
       <p>Her vises transaktionerne gemt på din konto.</p>
+      <p id="depot-requirement" role={depotStatus.error ? "alert" : "status"}>
+        {isCheckingDepot ? "Kontrollerer depot…" : depotStatus.error || (!depotStatus.exists ? "Opret et depot, før du kan tilføje en transaktion." : "Du kan nu tilføje transaktioner.")}
+      </p>
       {message && <p role="status">{message}</p>}
       {deleteError && (
         <p role="alert" className="text-red-600">
@@ -151,6 +179,7 @@ function Transactions() {
         <CreateDepot
           onClose={() => setIsCreatingDepot(false)}
           onCreate={(depot) => {
+            setDepotStatus({ userId: user?.id, exists: true, error: "" });
             setDepots((previous) => [...previous, depot]);
             setIsCreatingDepot(false);
             setMessage("Depotet er gemt på din konto.");
@@ -169,7 +198,7 @@ function Transactions() {
           </ul>
         </section>
       )}
-      {isAdding && (
+      {isAdding && canAddTransaction && (
         <AddTransaction
           onClose={() => setIsAdding(false)}
           onSaved={(transaction) => {

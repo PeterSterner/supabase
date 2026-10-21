@@ -163,6 +163,21 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     return { data };
   };
 
+  const hasDepot = useCallback(async () => {
+    if (!user) {
+      return { error: new AuthError("Du skal være logget ind for at se depoter.") };
+    }
+
+    const { data, error } = await supabase
+      .from("depoter")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .limit(1);
+
+    if (error) return { error };
+    return { data: Boolean(data?.length) };
+  }, [user]);
+
   const addTransaction = async (transaction: Transaktion) => {
     if (!user) {
       return {
@@ -170,6 +185,12 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           "Du skal være logget ind for at tilføje en transaktion.",
         ),
       };
+    }
+
+    const { data: depotExists, error: depotError } = await hasDepot();
+    if (depotError) return { error: depotError };
+    if (!depotExists) {
+      return { error: new AuthError("Du skal oprette et depot, før du kan tilføje en transaktion.") };
     }
 
     const { error } = await supabase
@@ -318,6 +339,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     listTransactions,
     deleteTransaction,
     addDepot,
+    hasDepot,
     showNote,
     listNotes,
     deleteNote,

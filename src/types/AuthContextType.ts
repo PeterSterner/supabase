@@ -61,6 +61,10 @@ interface AuthContextType {
     data?: boolean;
     error?: AuthError | PostgrestError;
   }>;
+  hasDepot: () => Promise<{
+    data?: boolean;
+    error?: AuthError | PostgrestError;
+  }>;
   listTransactions: () => Promise<{
     data?: GemtTransaktion[];
     error?: AuthError | PostgrestError;
